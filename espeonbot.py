@@ -14,11 +14,12 @@ bot.remove_command("help")
 
 @bot.command()
 async def help(ctx):
-    await ctx.send("Hello Madelaine!")
+    await ctx.send("I'm awake. What's up?")
 
 
 @bot.event
 async def on_ready():
+    await bot.load_extension("cogs.tracking")
     print(f"Bot running as {bot.user}")
 
 
