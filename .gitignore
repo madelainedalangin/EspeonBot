@@ -1,0 +1,22 @@
+# Token and secrets
+.env
+
+# Database
+tracker.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Pytest
+.pytest_cache/
+
+# Virtual environment
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
