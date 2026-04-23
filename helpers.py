@@ -21,17 +21,23 @@ def parse_duration(duration: str) -> int:
   Parameter: duration, a string in the format specified above.
   Return: total number of minutes as an integer, an int
   """
-  
+  og = duration
   duration = duration.lower()
   unit = duration[-1:]
   
   if unit == 'o' or unit == 'i':
     unit = duration[-2:]
-    num = int(duration[:-2])
+    try:
+      num = int(duration[:-2])
+    except ValueError:
+      raise ValueError(f"'{og}' is not a valid duration. Example: 7d, 2w, 6mo")
     if num < 0:
       raise ValueError("Duration must be a positive number.")
   else:
-    num = int(duration[:-1])
+    try:
+      num = int(duration[:-1])
+    except ValueError:
+      raise ValueError(f"'{og}' is not a valid duration. Example: 7d, 2w, 6mo")
     if num < 0:
       raise ValueError("Duration must be a positive number.")
 
