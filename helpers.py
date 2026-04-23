@@ -28,8 +28,12 @@ def parse_duration(duration: str) -> int:
   if unit == 'o' or unit == 'i':
     unit = duration[-2:]
     num = int(duration[:-2])
+    if num < 0:
+      raise ValueError("Duration must be a positive number.")
   else:
     num = int(duration[:-1])
+    if num < 0:
+      raise ValueError("Duration must be a positive number.")
 
   if unit == 'mi':
     minutes = num * 1
