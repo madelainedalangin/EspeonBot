@@ -22,7 +22,7 @@ A personal Discord bot for tracking habits, logging activities, focused work ses
 - Go to **OAuth2 → URL Generator** on the left sidebar
 - Under **Scopes**, check `bot` and `applications.commands`
 - Under **Bot Permissions**, check `Send Messages`, `Read Message History`, and `Embed Links`
-- Copy the generated URL at the very bottom on this page
+- Copy the generated URL located at the very bottom of this page
 - Open it in your browser and select which server to add the bot to
 
 ### 3. Set up the project
