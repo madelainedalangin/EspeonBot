@@ -1,0 +1,42 @@
+import sqlite3
+
+db = sqlite3.connect("tracker.db")
+
+db.execute("PRAGMA foreign_keys = ON")
+
+db.execute("""
+  CREATE TABLE IF NOT EXISTS tasks (
+    name TEXT PRIMARY KEY,
+    remind_after_minutes INTEGER,
+    channel_id INTEGER,
+    remind_hour INTEGER
+  )
+""")
+
+db.execute("""
+  CREATE TABLE IF NOT EXISTS logs (
+    task_name TEXT,
+    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_name) REFERENCES tasks(name)
+  )
+""")
+
+db.execute("""
+  CREATE TABLE IF NOT EXISTS sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    type TEXT,
+    label TEXT,
+    started_at TIMESTAMP,
+    ended_at TIMESTAMP
+  )
+""")
+
+db.execute("""
+  CREATE TABLE IF NOT EXISTS skips (
+    class_name TEXT,
+    skipped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+""")
+
+db.commit()
