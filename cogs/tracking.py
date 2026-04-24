@@ -51,6 +51,10 @@ class Tracking(commands.Cog):
       "INSERT OR REPLACE INTO tasks VALUES (?, ?, ?, ?)",
       (name, minutes, context.channel.id, hour)
     )
+    db.execute(
+      "INSERT INTO logs (task_name) VALUES (?)",
+      (name,)
+    )
     db.commit()
     
     if hour is not None:
