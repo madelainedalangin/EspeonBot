@@ -20,6 +20,7 @@ async def help(ctx):
 @bot.event
 async def on_ready():
     await bot.load_extension("cogs.tracking")
+    await bot.load_extension("cogs.logging")
     print(f"Bot running as {bot.user}")
 
 
