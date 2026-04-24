@@ -48,8 +48,8 @@ class Tracking(commands.Cog):
         return
     
     db.execute(
-      "INSERT OR REPLACE INTO tasks VALUES (?, ?, ?, ?)",
-      (name, minutes, context.channel.id, hour)
+      "INSERT OR REPLACE INTO tasks VALUES (?, ?, ?, ?, ?)",
+      (name, minutes, context.channel.id, hour, context.author.id)
     )
     db.execute(
       "INSERT INTO logs (task_name, logged_at) VALUES (?, ?)",
@@ -90,7 +90,7 @@ class Tracking(commands.Cog):
       return
     
     #fetch row in db. ? is placeholder for name
-    row = db.execute("SELECT * FROM tasks WHERE name = ?", (name,)).fetchone()
+    row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id =?", (name, context.author.id)).fetchone()
     
     if not row:
       await context.send(f"{name} doesn't exist.")
@@ -121,8 +121,8 @@ class Tracking(commands.Cog):
       hour = row[3] #keep existing hr
     
     db.execute(
-      "UPDATE tasks SET remind_after_minutes = ?, remind_hour = ? WHERE name = ?",
-      (minutes, hour, name)
+      "UPDATE tasks SET remind_after_minutes = ?, remind_hour = ? WHERE name = ? AND user_id = ?",
+      (minutes, hour, name, context.author.id)
     )
     db.commit()
     
@@ -149,13 +149,13 @@ class Tracking(commands.Cog):
       await context.send("Usage: `!untrack <name>`")
       return
     
-    row = db.execute("SELECT * FROM tasks WHERE name = ?", (name,)).fetchone()
+    row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     if not row:
       await context.send(f"{name} doesn't exist.")
       return
     
     db.execute("DELETE FROM logs WHERE task_name = ?", (name,))
-    db.execute("DELETE FROM tasks WHERE name = ?", (name,))
+    db.execute("DELETE FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id))
     db.commit()
     await context.send(f"Removed {name} and all its entries.")
   
@@ -175,8 +175,9 @@ class Tracking(commands.Cog):
       SELECT t.name, t.remind_after_minutes, MAX(l.logged_at) as last_done
       FROM tasks t
       LEFT JOIN logs l ON t.name = l.task_name
+      WHERE t.user_id = ?
       GROUP BY t.name
-    """).fetchall()
+    """, (context.author.id,)).fetchall()
     if not rows:
       await context.send("Nothing tracked yet.")
       return
@@ -210,7 +211,8 @@ class Tracking(commands.Cog):
       None. Sends a list of all tasks to the Discord channel.
     """
     
-    rows = db.execute("SELECT name, remind_after_minutes, remind_hour FROM tasks").fetchall()
+    rows = db.execute(
+      "SELECT name, remind_after_minutes, remind_hour FROM tasks WHERE user_id = ?", (context.author.id,)).fetchall()
     
     if not rows:
       await context.send("Nothing tracked or logged yet.")
@@ -244,7 +246,7 @@ class Tracking(commands.Cog):
       await context.send("Usage: `!snooze <name> [duration]`\nExample: `!snooze vacuum 8h`")
       return
     
-    row = db.execute("SELECT * FROM tasks WHERE name = ?", (name,)).fetchone()
+    row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     if not row:
       await context.send(f"{name} doesn't exist.")
       return
@@ -260,17 +262,17 @@ class Tracking(commands.Cog):
     
     snooze_until = datetime.now() + timedelta(minutes=snooze_min)
     db.execute(
-      "INSERT INTO log (task_name, logged_at) VALUES (?, ?)",
+      "INSERT INTO logs (task_name, logged_at) VALUES (?, ?)",
       (name, snooze_until.isoformat())
     )
     db.commit()
     await context.send(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
 
-  @tasks.loop(hours=3)
+  @tasks.loop(minutes=1)
   async def check_reminders(self):
     """
     Background loop that checks for overdue tasks and sends reminders.
-    Runs every minute. Respects remind_hour if set.
+    Respects remind_hour if set.
     
     Args:
       None.
@@ -279,28 +281,28 @@ class Tracking(commands.Cog):
       None. Sends reminder messages to the appropriate Discord channels.
     """
     now = datetime.now()
-    #print(f"checking reminders at {now}")
+    print(f"checking reminders at {now}")
     rows = db.execute("""
-      SELECT t.name, t.remind_after_minutes, t.channel_id, t.remind_hour, MAX(l.logged_at) as last_done
+      SELECT t.name, t.remind_after_minutes, t.channel_id, t.remind_hour, t.user_id, MAX(l.logged_at) as last_done
       FROM tasks t
       LEFT JOIN logs l ON t.name = l.task_name
       WHERE t.remind_after_minutes IS NOT NULL
-      GROUP BY t.name
+      GROUP BY t.name, user_id
     """).fetchall()
 
-    for name, minutes, channel_id, remind_hour, last_done in rows:
-      #print(f"  {name}: minutes={minutes}, remind_hour={remind_hour}, last_done={last_done}")
+    for name, minutes, channel_id, remind_hour, user_id, last_done in rows:
+      print(f"  {name}: minutes={minutes}, remind_hour={remind_hour}, last_done={last_done}")
       if remind_hour is not None and now.hour != remind_hour:
         print(f"  Skipping {name} -- wrong hour")
         continue
       if last_done:
         ago = (now - datetime.fromisoformat(last_done)).total_seconds() / 60
-        #print(f"  {name}: ago={ago} minutes")
+        print(f"  {name}: ago={ago} minutes")
         if ago < minutes:
           continue
       channel = self.bot.get_channel(channel_id)
       if channel:
-        await channel.send(f"Hey! It's been a while since you **{name}**. Go do it.")
+        await channel.send(f"<@{user_id}> It's been a while since you **{name}**. Go do it.")
   
   @check_reminders.before_loop
   async def before_check_reminders(self):

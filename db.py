@@ -6,18 +6,19 @@ db.execute("PRAGMA foreign_keys = ON")
 
 db.execute("""
   CREATE TABLE IF NOT EXISTS tasks (
-    name TEXT PRIMARY KEY,
+    name TEXT,
     remind_after_minutes INTEGER,
     channel_id INTEGER,
-    remind_hour INTEGER
+    remind_hour INTEGER,
+    user_id INTEGER,
+    PRIMARY KEY (name, user_id)
   )
 """)
 
 db.execute("""
   CREATE TABLE IF NOT EXISTS logs (
     task_name TEXT,
-    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (task_name) REFERENCES tasks(name)
+    logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 """)
 
