@@ -1,7 +1,7 @@
 from discord.ext import commands, tasks
 from db import db
 from helpers import parse_duration
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Tracking(commands.Cog):
   
@@ -227,6 +227,44 @@ class Tracking(commands.Cog):
         lines.append(f"[log] {name} -- log only")
 
     await context.send("\n".join(lines))
+  
+  @commands.command()
+  async def snooze(self, context, name=None, duration=None):
+    """
+    Delay a task's reminder at a specified duration
+
+    Args:
+      context: Discord message context, passed automatically.
+      name: Name of task to snooze
+      duration (3h, 8d, 2w, 1mo): how long to snooze
+    
+    Returns: None. Sends confirmation message to the Discord channel instead.
+    """
+    if not name:
+      await context.send("Usage: `!snooze <name> [duration]`\nExample: `!snooze vacuum 8h`")
+      return
+    
+    row = db.execute("SELECT * FROM tasks WHERE name = ?", (name,)).fetchone()
+    if not row:
+      await context.send(f"{name} doesn't exist.")
+      return
+    
+    if duration:
+      try:
+        snooze_min = parse_duration(duration)
+      except ValueError as e:
+        await context.send(str(e))
+        return
+    else:
+      snooze_min = 480 #8 hours
+    
+    snooze_until = datetime.now() + timedelta(minutes=snooze_min)
+    db.execute(
+      "INSERT INTO log (task_name, logged_at) VALUES (?, ?)",
+      (name, snooze_until.isoformat())
+    )
+    db.commit()
+    await context.send(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
 
   @tasks.loop(hours=3)
   async def check_reminders(self):
