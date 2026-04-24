@@ -52,8 +52,8 @@ class Tracking(commands.Cog):
       (name, minutes, context.channel.id, hour)
     )
     db.execute(
-      "INSERT INTO logs (task_name) VALUES (?)",
-      (name,)
+      "INSERT INTO logs (task_name, logged_at) VALUES (?, ?)",
+      (name, datetime.now().isoformat())
     )
     db.commit()
     
@@ -228,7 +228,7 @@ class Tracking(commands.Cog):
 
     await context.send("\n".join(lines))
 
-  @tasks.loop(minutes=1)
+  @tasks.loop(hours=3)
   async def check_reminders(self):
     """
     Background loop that checks for overdue tasks and sends reminders.
@@ -241,6 +241,7 @@ class Tracking(commands.Cog):
       None. Sends reminder messages to the appropriate Discord channels.
     """
     now = datetime.now()
+    #print(f"checking reminders at {now}")
     rows = db.execute("""
       SELECT t.name, t.remind_after_minutes, t.channel_id, t.remind_hour, MAX(l.logged_at) as last_done
       FROM tasks t
@@ -250,10 +251,13 @@ class Tracking(commands.Cog):
     """).fetchall()
 
     for name, minutes, channel_id, remind_hour, last_done in rows:
+      #print(f"  {name}: minutes={minutes}, remind_hour={remind_hour}, last_done={last_done}")
       if remind_hour is not None and now.hour != remind_hour:
+        print(f"  Skipping {name} -- wrong hour")
         continue
       if last_done:
         ago = (now - datetime.fromisoformat(last_done)).total_seconds() / 60
+        #print(f"  {name}: ago={ago} minutes")
         if ago < minutes:
           continue
       channel = self.bot.get_channel(channel_id)
