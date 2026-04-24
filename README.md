@@ -3,7 +3,7 @@
 A personal Discord bot for tracking habits, logging activities, focused work sessions, and keeping me in check.
 
 ## Features (WIP) 
-- Track reccurring tasks with reminders 
+- Track recurring tasks with reminders and option to snooze
 - Log activities without reminders 
 - Focus/break timer with stats 
 - Class skip tracker (adding one liner mean punchlines bc I will need it) 
