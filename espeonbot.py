@@ -21,6 +21,8 @@ async def help(ctx):
 async def on_ready():
     await bot.load_extension("cogs.tracking")
     #await bot.load_extension("cogs.logging")
+    #await bot.load_extension("cogs.focus")
+    #await bot.load_extension("cogs.skips")
     print(f"Bot running as {bot.user}")
 
 
