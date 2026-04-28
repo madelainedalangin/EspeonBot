@@ -18,6 +18,7 @@ db.execute("""
 db.execute("""
   CREATE TABLE IF NOT EXISTS logs (
     task_name TEXT,
+    user_id INTEGER,
     logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 """)
@@ -37,6 +38,12 @@ db.execute("""
   CREATE TABLE IF NOT EXISTS skips (
     class_name TEXT,
     skipped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+""")
+
+db.execute("""
+  CREATE TABLE IF NOT EXISTS roasts (
+    message TEXT
   )
 """)
 

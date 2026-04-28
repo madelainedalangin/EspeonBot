@@ -31,8 +31,8 @@ class Logging(commands.Cog):
       (name, context.channel.id, context.author.id)
     )
     db.execute(
-    "INSERT INTO logs (task_name, logged_at) VALUES (?, ?)",
-    (name, datetime.now().isoformat())
+      "INSERT INTO logs (task_name, user_id, logged_at) VALUES (?, ?, ?)",
+      (name, context.author.id, datetime.now().isoformat())
     )
     db.commit()
     await context.send(f"Logged {name}")
@@ -58,12 +58,12 @@ class Logging(commands.Cog):
       (name, context.author.id)
     ).fetchone()
     if not row:
-      await context.send(f"{name} doesn't exist. Use `!track {name} <duration>\nOr if you cannot remember, type `!list` to see your list of tracked entries.")
+      await context.send(f"{name} doesn't exist. Use `!track {name} <duration>`\nOr if you cannot remember, type `!list` to see your list of tracked entries.")
       return
     
     db.execute(
-      "INSERT INTO logs (task_name, logged_at) VALUES (?, ?)",
-      (name, datetime.now().isoformat())
+      "INSERT INTO logs (task_name, user_id, logged_at) VALUES (?, ?, ?)",
+      (name, context.author.id, datetime.now().isoformat())
     )
     db.commit()
     await context.send(f"Logged {name}")
@@ -81,21 +81,21 @@ class Logging(commands.Cog):
     """
     
     if not name:
-      await context.send("Usage: `!history <name>\nExample: `!history shower`")
+      await context.send("Usage: `!history <name>`\nExample: `!history shower`")
       return
     
     rows = db.execute(
-      "SELECT rowid, logged_at FROM logs WHERE task_name = ? ORDER BY logged_at DESC",
-      (name,)
+      "SELECT rowid, logged_at FROM logs WHERE task_name = ? AND user_id = ? ORDER BY logged_at DESC",
+      (name, context.author.id)
     ).fetchall()
     if not rows:
       await context.send(f"No history for {name}.")
       return
     
-    lines = [f"{name}-- {len(rows)} entries: "]
+    lines = [f"{name} -- {len(rows)} entries:"]
     for index, (rowid, ts) in enumerate(rows, 1):
       dt = datetime.fromisoformat(ts)
-      lines.append(f"  `{index}.` {dt.strftime('%B %d, %Y at %-I:%M %p')}")
+      lines.append(f"`{index}.` {dt.strftime('%B %d, %Y at %-I:%M %p')}")
     await context.send("\n".join(lines))
     
   @commands.command()
@@ -125,8 +125,8 @@ class Logging(commands.Cog):
       return
 
     rows = db.execute(
-      "SELECT rowid FROM logs WHERE task_name = ? ORDER BY logged_at DESC",
-      (name,)
+      "SELECT rowid FROM logs WHERE task_name = ? AND user_id = ? ORDER BY logged_at DESC",
+      (name, context.author.id)
     ).fetchall()
 
     if not rows or entry_num < 1 or entry_num > len(rows):
@@ -138,11 +138,11 @@ class Logging(commands.Cog):
     
     #if after delete theres no more logs left, remove the task too
     whats_left = db.execute(
-      "SELECT COUNT (*) FROM logs WHERE task_name = ?", (name,)
+      "SELECT COUNT(*) FROM logs WHERE task_name = ? AND user_id = ?", (name, context.author.id)
     ).fetchone()[0]
     if whats_left == 0:
       db.execute(
-        "DELETE FROM tasks WHERE name = ? and user_id = ? AND remind_after_minutes IS NULL",
+        "DELETE FROM tasks WHERE name = ? AND user_id = ? AND remind_after_minutes IS NULL",
         (name, context.author.id)
       )
       
