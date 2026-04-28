@@ -25,7 +25,7 @@ class Tracking(commands.Cog):
     """
     
     if not name or not duration:
-      await context.send(
+      await context.reply(
         "Usage: `!track <name> <duration> [hour]`\n"
         "Example: `!track vacuum 5d` or `!track vacuum 5d 14` (24 hr format)"
       )
@@ -34,17 +34,17 @@ class Tracking(commands.Cog):
     try:
       minutes = parse_duration(duration)
     except ValueError as e:
-      await context.send(str(e))
+      await context.reply(str(e))
       return
     
     if hour is not None:
       try:
         hour = int(hour)
       except ValueError:
-        await context.send("Hour must be a number 0-23.")
+        await context.reply("Hour must be a number 0-23.")
         return
       if not (0 <= hour <= 23):
-        await context.send("Hour must be 0-23.")
+        await context.reply("Hour must be 0-23.")
         return
     
     db.execute(
@@ -62,7 +62,7 @@ class Tracking(commands.Cog):
     else:
       hour_string = ""
       
-    await context.send(f"Tracking {name} -- ping me after {duration}{hour_string}")
+    await context.reply(f"Tracking {name} -- ping me after {duration}{hour_string}")
   
   @commands.command()
   async def edit(self, context, name=None, duration=None, hour=None):
@@ -79,7 +79,7 @@ class Tracking(commands.Cog):
       None. Sends a confirmation or error message to the Discord channel.
     """
     if not name or not duration:
-      await context.send(
+      await context.reply(
         "Usage: `!edit <name> <duration> [hour]`\n"
         "Use `-` to skip a field.\n"
         "Examples:\n"
@@ -93,7 +93,7 @@ class Tracking(commands.Cog):
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     
     if not row:
-      await context.send(f"{name} doesn't exist.")
+      await context.reply(f"{name} doesn't exist.")
       return
     
     if duration == "-":
@@ -103,7 +103,7 @@ class Tracking(commands.Cog):
         minutes = parse_duration(duration)
         
       except ValueError as e:
-        await context.send(str(e))
+        await context.reply(str(e))
         
         return
     
@@ -111,11 +111,11 @@ class Tracking(commands.Cog):
       try:
         hour = int(hour)
       except ValueError:
-        await context.send("Hour should be a number between 0-23")
+        await context.reply("Hour should be a number between 0-23")
         return
       
       if not (0 <= hour <= 23):
-        await context.send("Hour must be 0-23")
+        await context.reply("Hour must be 0-23")
         return
     else:
       hour = row[3] #keep existing hr
@@ -130,7 +130,7 @@ class Tracking(commands.Cog):
       hour_string = f" at {hour}:00"
     else:
       hour_string = ""
-    await context.send(f"Updated {name} --> now {duration}{hour_string}")         
+    await context.reply(f"Updated {name} --> now {duration}{hour_string}")         
   
   @commands.command()
   async def untrack(self, context, name=None):
@@ -146,18 +146,18 @@ class Tracking(commands.Cog):
     """
     
     if not name:
-      await context.send("Usage: `!untrack <name>`")
+      await context.reply("Usage: `!untrack <name>`")
       return
     
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     if not row:
-      await context.send(f"{name} doesn't exist.")
+      await context.reply(f"{name} doesn't exist.")
       return
     
     db.execute("DELETE FROM logs WHERE task_name = ? AND user_id = ?", (name, context.author.id))
     db.execute("DELETE FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id))
     db.commit()
-    await context.send(f"Removed {name} and all its entries.")
+    await context.reply(f"Removed {name} and all its entries.")
   
   @commands.command()
   async def status(self, context):
@@ -179,7 +179,7 @@ class Tracking(commands.Cog):
       GROUP BY t.name
     """, (context.author.id,)).fetchall()
     if not rows:
-      await context.send("Nothing tracked yet.")
+      await context.reply("Nothing tracked yet.")
       return
     lines = []
     for name, minutes, last_done in rows:
@@ -195,9 +195,9 @@ class Tracking(commands.Cog):
       else:
           lines.append(f"**{name}** -- never done, OVERDUE")
     if not lines:
-      await context.send("No tracked tasks. Use `!list` to see log-only tasks.")
+      await context.reply("No tracked tasks. Use `!list` to see log-only tasks.")
       return
-    await context.send("\n".join(lines))
+    await context.reply("\n".join(lines))
 
   @commands.command(name="list")
   async def list_tasks(self, context):
@@ -215,7 +215,7 @@ class Tracking(commands.Cog):
       "SELECT name, remind_after_minutes, remind_hour FROM tasks WHERE user_id = ?", (context.author.id,)).fetchall()
     
     if not rows:
-      await context.send("Nothing tracked or logged yet.")
+      await context.reply("Nothing tracked or logged yet.")
       return
     
     lines = []
@@ -228,7 +228,7 @@ class Tracking(commands.Cog):
       else:
         lines.append(f"[log] {name} -- log only")
 
-    await context.send("\n".join(lines))
+    await context.reply("\n".join(lines))
   
   @commands.command()
   async def snooze(self, context, name=None, duration=None):
@@ -243,19 +243,19 @@ class Tracking(commands.Cog):
     Returns: None. Sends confirmation message to the Discord channel instead.
     """
     if not name:
-      await context.send("Usage: `!snooze <name> [duration]`\nExample: `!snooze vacuum 8h`")
+      await context.reply("Usage: `!snooze <name> [duration]`\nExample: `!snooze vacuum 8h`")
       return
     
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     if not row:
-      await context.send(f"{name} doesn't exist.")
+      await context.reply(f"{name} doesn't exist.")
       return
     
     if duration:
       try:
         snooze_min = parse_duration(duration)
       except ValueError as e:
-        await context.send(str(e))
+        await context.reply(str(e))
         return
     else:
       snooze_min = 480 #8 hours
@@ -266,7 +266,7 @@ class Tracking(commands.Cog):
       (name, context.author.id, snooze_until.isoformat())
     )
     db.commit()
-    await context.send(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
+    await context.reply(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
 
   @tasks.loop(minutes=1)
   async def check_reminders(self):
@@ -298,7 +298,7 @@ class Tracking(commands.Cog):
           continue
       channel = self.bot.get_channel(channel_id)
       if channel:
-        await channel.send(f"<@{user_id}> It's been a while since you **{name}**. Go do it.")
+        await channel.send(f"Hello <@{user_id}>! it's **{name}** time :)")
   
   @check_reminders.before_loop
   async def before_check_reminders(self):

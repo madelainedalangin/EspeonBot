@@ -23,7 +23,7 @@ class Logging(commands.Cog):
     """
     
     if not name:
-      await context.send("Usage: `!log <name>`\nExample: `!log drawing`")
+      await context.reply("Usage: `!log <name>`\nExample: `!log drawing`")
       return
     
     db.execute(
@@ -35,7 +35,7 @@ class Logging(commands.Cog):
       (name, context.author.id, datetime.now().isoformat())
     )
     db.commit()
-    await context.send(f"Logged {name}")
+    await context.reply(f"Logged {name}")
     
   @commands.command()
   async def done(self, context, name=None):
@@ -50,7 +50,7 @@ class Logging(commands.Cog):
     """
     
     if not name:
-      await context.send("Usage: `!done <name>`\nExample: `!done drinkwater`")
+      await context.reply("Usage: `!done <name>`\nExample: `!done drinkwater`")
       return
     
     row = db.execute(
@@ -58,7 +58,7 @@ class Logging(commands.Cog):
       (name, context.author.id)
     ).fetchone()
     if not row:
-      await context.send(f"{name} doesn't exist. Use `!track {name} <duration>`\nOr if you cannot remember, type `!list` to see your list of tracked entries.")
+      await context.reply(f"{name} doesn't exist. Use `!track {name} <duration>`\nOr if you cannot remember, type `!list` to see your list of tracked entries.")
       return
     
     db.execute(
@@ -66,7 +66,7 @@ class Logging(commands.Cog):
       (name, context.author.id, datetime.now().isoformat())
     )
     db.commit()
-    await context.send(f"Logged {name}")
+    await context.reply(f"Logged {name}")
   
   @commands.command()
   async def history(self, context, name=None):
@@ -81,7 +81,7 @@ class Logging(commands.Cog):
     """
     
     if not name:
-      await context.send("Usage: `!history <name>`\nExample: `!history shower`")
+      await context.reply("Usage: `!history <name>`\nExample: `!history shower`")
       return
     
     rows = db.execute(
@@ -89,14 +89,14 @@ class Logging(commands.Cog):
       (name, context.author.id)
     ).fetchall()
     if not rows:
-      await context.send(f"No history for {name}.")
+      await context.reply(f"No history for {name}.")
       return
     
     lines = [f"{name} -- {len(rows)} entries:"]
     for index, (rowid, ts) in enumerate(rows, 1):
       dt = datetime.fromisoformat(ts)
       lines.append(f"`{index}.` {dt.strftime('%B %d, %Y at %-I:%M %p')}")
-    await context.send("\n".join(lines))
+    await context.reply("\n".join(lines))
     
   @commands.command()
   async def delete(self, context, name=None, entry_num=None):
@@ -112,7 +112,7 @@ class Logging(commands.Cog):
       None. Sends a confirmation or error message to the Discord channel.
     """
     if not name or not entry_num:
-      await context.send(
+      await context.reply(
         "Usage: `!delete <name> <entry_number>`\n"
         "Use `!history <name>` to see entry numbers."
       )
@@ -121,7 +121,7 @@ class Logging(commands.Cog):
     try:
       entry_num = int(entry_num)
     except ValueError:
-      await context.send("Entry number must be a number.")
+      await context.reply("Entry number must be a number.")
       return
 
     rows = db.execute(
@@ -130,7 +130,7 @@ class Logging(commands.Cog):
     ).fetchall()
 
     if not rows or entry_num < 1 or entry_num > len(rows):
-      await context.send(f"Invalid entry number. Use `!history {name}` to check.")
+      await context.reply(f"Invalid entry number. Use `!history {name}` to check.")
       return
 
     rowid = rows[entry_num - 1][0]
@@ -147,7 +147,7 @@ class Logging(commands.Cog):
       )
       
     db.commit()
-    await context.send(f"Deleted entry {entry_num} from {name}.")
+    await context.reply(f"Deleted entry {entry_num} from {name}.")
 
 async def setup(bot):
   await bot.add_cog(Logging(bot))
