@@ -30,8 +30,13 @@ class Logging(commands.Cog):
       "INSERT OR IGNORE INTO tasks VALUES (?, NULL, ?, NULL, ?)",
       (name, context.channel.id, context.author.id)
     )
+    db.execute(
+    "INSERT INTO logs (task_name, logged_at) VALUES (?, ?)",
+    (name, datetime.now().isoformat())
+    )
     db.commit()
     await context.send(f"Logged {name}")
+    
   @commands.command()
   async def done(self, context, name=None):
     """
@@ -49,7 +54,7 @@ class Logging(commands.Cog):
       return
     
     row = db.execute(
-      "SELEC * FROM tasks WHERE name = ? AND user_id = ?",
+      "SELECT * FROM tasks WHERE name = ? AND user_id = ?",
       (name, context.author.id)
     ).fetchone()
     if not row:
@@ -87,50 +92,51 @@ class Logging(commands.Cog):
       await context.send(f"No history for {name}.")
       return
     
-    lines = [f"{name}: {len(rows)} entries:"]
+    lines = [f"{name}-- {len(rows)} entries: "]
     for index, (rowid, ts) in enumerate(rows, 1):
-      lines.append(f" {index}. {ts[:16]}")
+      dt = datetime.fromisoformat(ts)
+      lines.append(f"  `{index}.` {dt.strftime('%B %d, %Y at %-I:%M %p')}")
     await context.send("\n".join(lines))
     
-    @commands.command()
-    async def delete(self, context, name=None, entry_number=None):
-      """
-      Delete a specific log entry by its number from history.
+  @commands.command()
+  async def delete(self, context, name=None, entry_num=None):
+    """
+    Delete a specific log entry by its number from history.
 
-      Args:
-        context: Discord message context, passed automatically.
-        name: Name of the task.
-        entry_num: Entry number from !history to delete.
+    Args:
+      context: Discord message context, passed automatically.
+      name: Name of the task.
+      entry_num: Entry number from !history to delete.
 
-      Returns:
-        None. Sends a confirmation or error message to the Discord channel.
-      """
-      if not name or not entry_num:
-        await context.send(
-          "Usage: `!delete <name> <entry_number>`\n"
-          "Use `!history <name>` to see entry numbers."
-        )
-        return
+    Returns:
+      None. Sends a confirmation or error message to the Discord channel.
+    """
+    if not name or not entry_num:
+      await context.send(
+        "Usage: `!delete <name> <entry_number>`\n"
+        "Use `!history <name>` to see entry numbers."
+      )
+      return
 
-      try:
-        entry_num = int(entry_num)
-      except ValueError:
-        await context.send("Entry number must be a number.")
-        return
+    try:
+      entry_num = int(entry_num)
+    except ValueError:
+      await context.send("Entry number must be a number.")
+      return
 
-      rows = db.execute(
-        "SELECT rowid FROM logs WHERE task_name = ? ORDER BY logged_at DESC",
-        (name,)
-      ).fetchall()
+    rows = db.execute(
+      "SELECT rowid FROM logs WHERE task_name = ? ORDER BY logged_at DESC",
+      (name,)
+    ).fetchall()
 
-      if not rows or entry_num < 1 or entry_num > len(rows):
-        await context.send(f"Invalid entry number. Use `!history {name}` to check.")
-        return
+    if not rows or entry_num < 1 or entry_num > len(rows):
+      await context.send(f"Invalid entry number. Use `!history {name}` to check.")
+      return
 
-      rowid = rows[entry_num - 1][0]
-      db.execute("DELETE FROM logs WHERE rowid = ?", (rowid,))
-      db.commit()
-      await context.send(f"Deleted entry {entry_num} from {name}.")
+    rowid = rows[entry_num - 1][0]
+    db.execute("DELETE FROM logs WHERE rowid = ?", (rowid,))
+    db.commit()
+    await context.send(f"Deleted entry {entry_num} from {name}.")
 
 async def setup(bot):
   await bot.add_cog(Logging(bot))
