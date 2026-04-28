@@ -135,6 +135,17 @@ class Logging(commands.Cog):
 
     rowid = rows[entry_num - 1][0]
     db.execute("DELETE FROM logs WHERE rowid = ?", (rowid,))
+    
+    #if after delete theres no more logs left, remove the task too
+    whats_left = db.execute(
+      "SELECT COUNT (*) FROM logs WHERE task_name = ?", (name,)
+    ).fetchone()[0]
+    if whats_left == 0:
+      db.execute(
+        "DELETE FROM tasks WHERE name = ? and user_id = ? AND remind_after_minutes IS NULL",
+        (name, context.author.id)
+      )
+      
     db.commit()
     await context.send(f"Deleted entry {entry_num} from {name}.")
 
