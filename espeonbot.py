@@ -33,12 +33,14 @@ async def help(ctx):
 
 
 @bot.event
-async def on_ready():
+async def setup_hook():
     await bot.load_extension("cogs.tracking")
     await bot.load_extension("cogs.logging_tasks")
     #await bot.load_extension("cogs.focus")
     #await bot.load_extension("cogs.skips")
-    print(f"Bot running as {bot.user}")
 
+@bot.event
+async def on_ready():
+    print(f"Bot running as {bot.user}")
 
 bot.run(TOKEN)
