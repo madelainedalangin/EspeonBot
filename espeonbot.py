@@ -14,7 +14,22 @@ bot.remove_command("help")
 
 @bot.command()
 async def help(ctx):
-    await ctx.send("I'm awake. What's up?")
+    await ctx.send(
+        "**-- Tracking --**\n"
+        "`!track <name> <duration> [hour]` -- track + pester\n"
+        "`!edit <name> <duration> [hour]` -- change duration/hour (use `-` to skip)\n"
+        "`!untrack <name>` -- stop tracking\n"
+        "`!status` -- see what's overdue\n"
+        "`!list` -- see all tasks\n"
+        "`!snooze <name> [duration]` -- delay reminders (default 8h)\n\n"
+        "**Durations:** `5mi`, `3h`, `7d`, `2w`, `6mo`\n"
+        "**Hour:** 0-23 (24hr format). Reminders only fire at that hour.\n\n"
+        "**-- Logging --**\n"
+        "`!log <name>` -- log something (no reminders)\n"
+        "`!done <name>` -- log a tracked task (resets countdown)\n"
+        "`!history <name>` -- see all entries\n"
+        "`!delete <name> <entry_number>` -- delete an entry\n\n"
+        )
 
 
 @bot.event
