@@ -52,8 +52,8 @@ async def help(context):
 async def setup_hook():
     await bot.load_extension("cogs.tracking")
     await bot.load_extension("cogs.logging_tasks")
-    #await bot.load_extension("cogs.focus")
-    #await bot.load_extension("cogs.skips")
+    await bot.load_extension("cogs.focus")
+    await bot.load_extension("cogs.skips")
 
 @bot.event
 async def on_ready():
