@@ -1,92 +1,69 @@
 # EspeonBot
 
-A personal Discord bot that tracks habits, logs activities, times focus sessions, roasts you for skipping class, and won't stop notifying you until you get things done.
+A personal Discord bot that tracks habits, logs activities, times focus sessions, roasts you for skipping class, and won't shut up until you get things done.
 
 ## Features
 
-**Tracking** -- Track recurring tasks with customizable reminders. Set a duration and an optional hour, and the bot will pester you when you're overdue. Snooze reminders when you need a break.
+**Tracking** - Track recurring tasks with customizable reminders. Set a duration and an optional hour, and the bot will pester you when you're overdue. Snooze reminders when you need a break.
 
-**Logging** -- Record anything without reminders. Log haircuts, meals, showers, whatever you want to keep a history of. View and manage entries with numbered history.
+**Logging** - Record anything without reminders. Log haircuts, meals, showers, whatever you want to keep a history of. View and manage entries with numbered history.
 
-**Focus** -- Timed focus and break sessions with stats. See how much time you've spent focusing vs taking breaks, broken down by task. If someone mentions you while you're focusing, the bot lets them know.
+**Focus** - Timed focus and break sessions with stats. See how much time you've spent focusing vs taking breaks, broken down by task. If someone mentions you while you're focusing, the bot lets them know.
 
-**Skips** -- Log skipped activities and get roasted for it. The bot detects lecture skips (anything with a 3-digit course number) and pulls from a separate pool of academic roasts. Add your own custom roast messages.
+**Skips** - Log skipped activities and get roasted for it. The bot detects lecture skips (anything with a 3-digit course number) and pulls from a separate pool of academic roasts. Add your own custom roast messages.
 
 ## Commands
 
 ### Tracking
-
-| Command | Description |
-|---|---|
-| `!track <name> <duration> [hour]` | Start tracking something |
-| `!edit <name> <duration> [hour]` | Change duration/hour (use `-` to skip a field) |
-| `!untrack <name>` | Stop tracking and delete all entries |
-| `!status` | See what's overdue |
-| `!list` | See all your tasks |
-| `!snooze <name> [duration]` | Delay reminders (default 8h) |
-| `!done <name>` | Log a tracked task (resets the countdown) |
+- `!track <name> <duration> [hour]` - start tracking something
+- `!edit <name> <duration> [hour]` - change duration/hour (use `-` to skip a field)
+- `!untrack <name>` - stop tracking and delete all entries
+- `!status` - see what's overdue
+- `!list` - see all your tasks
+- `!snooze <name> [duration]` - delay reminders (default 8h)
+- `!done <name>` - log a tracked task (resets the countdown)
 
 ### Logging
-
-| Command | Description |
-|---|---|
-| `!log <name>` | Log something with no reminders |
-| `!history <name>` | See all entries for something |
-| `!delete <name> <entry_number>` | Delete a specific entry |
+- `!log <name>` - log something with no reminders
+- `!history <name>` - see all entries for something
+- `!delete <name> <entry_number>` - delete a specific entry
 
 ### Skips
-
-| Command | Description |
-|---|---|
-| `!skip <name>` | Log a skip and get roasted |
-| `!skips` | See skip counts for everything |
-| `!skips <name>` | See skip dates for one thing |
+- `!skip <name>` - log a skip and get roasted
+- `!skips` - see skip counts for everything
+- `!skips <name>` - see skip dates for one thing
 
 ### Roasts
-
-| Command | Description |
-|---|---|
-| `!addroast <message>` | Add a custom roast message |
-| `!listroasts` | See all custom roasts |
-| `!editroast <number> <new message>` | Edit a roast |
-| `!deleteroast <number>` | Delete a roast |
+- `!addroast <message>` - add a custom roast message
+- `!listroasts` - see all custom roasts
+- `!editroast <number> <new message>` - edit a roast
+- `!deleteroast <number>` - delete a roast
 
 ### Focus
-
-| Command | Description |
-|---|---|
-| `!focus <label> [duration]` | Start a focus session (default 25mi) |
-| `!break [duration]` | Take a break (default 5mi) |
-| `!stop` | End current session early |
-| `!sessions` | See recent focus/break entries |
-| `!stats` | See focus vs break totals |
+- `!focus <label> [duration]` - start a focus session (default 25mi)
+- `!break [duration]` - take a break (default 5mi)
+- `!stop` - end current session early
+- `!sessions` - see recent focus/break entries
+- `!stats` - see focus vs break totals
 
 ### Durations
-
 Supports single or combined units:
-
-| Example | Meaning |
-|---|---|
-| `5mi` | 5 minutes |
-| `3h` | 3 hours |
-| `7d` | 7 days |
-| `2w` | 2 weeks |
-| `6mo` | 6 months |
-| `1h30mi` | 1 hour 30 minutes |
-| `2w3d` | 2 weeks 3 days |
+- `5mi` - 5 minutes
+- `3h` - 3 hours
+- `7d` - 7 days
+- `2w` - 2 weeks
+- `6mo` - 6 months
+- `1h30mi` - 1 hour 30 minutes
+- `2w3d` - 2 weeks 3 days
 
 ### Hour
-
 Optional 24-hour format for reminders:
-
-| Value | Time |
-|---|---|
-| 0 | 12 AM midnight |
-| 9 | 9 AM |
-| 12 | 12 PM noon |
-| 14 | 2 PM |
-| 21 | 9 PM |
-| 23 | 11 PM |
+- 0 = 12 AM midnight
+- 9 = 9 AM
+- 12 = 12 PM noon
+- 14 = 2 PM
+- 21 = 9 PM
+- 23 = 11 PM
 
 ## Setup
 
@@ -94,7 +71,7 @@ Optional 24-hour format for reminders:
 - Go to https://discord.com/developers/applications
 - Click **New Application** and give it a name
 - Go to **Bot** on the left sidebar
-- Click **Reset Token** and copy it -- you'll need this in step 3
+- Click **Reset Token** and copy it - you'll need this in step 3
 - Scroll down to **Privileged Gateway Intents** and enable:
   - **Message Content Intent**
   - **Server Members Intent**
@@ -136,7 +113,7 @@ pytest
 ```
 
 ## Hosting (coming soon)
-The bot currently runs locally. Planning to deploy to a VPS so it stays online 24/7. Still researching options (Oracle Cloud free tier, Hetzner, DigitalOcean). This section will be updated once hosting is set up.
+The bot currently runs locally. I'm planning to deploy to a VPS so it stays online 24/7, more people can use it if they want and don't wanna self-host. I'm still researching my options 🥺.
 
 ## Project Structure
 ```
