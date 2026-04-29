@@ -1,7 +1,6 @@
 from discord.ext import commands, tasks
 from db import db
-from helpers import parse_duration
-from datetime import datetime, timedelta
+from datetime import datetime
 
 class Logging(commands.Cog):
   

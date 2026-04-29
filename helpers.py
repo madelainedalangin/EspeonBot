@@ -1,65 +1,59 @@
+import re
+
+MINUTES_PER_MINUTE = 1
+MINUTES_PER_HOUR = 60
+MINUTES_PER_DAY = 1440
+MINUTES_PER_WEEK = 10080
+MINUTES_PER_MONTH = 43200
+
+MULTIPLIERS = {
+  'mi': MINUTES_PER_MINUTE,
+  'h': MINUTES_PER_HOUR,
+  'd': MINUTES_PER_DAY,
+  'w': MINUTES_PER_WEEK,
+  'mo': MINUTES_PER_MONTH,
+}
+
 def parse_duration(duration: str) -> int:
   """
-  This function takes a string in the format of the following:
-  "3d"
-  "3D"
-  "3w"
-  "3W"
-  "5mi"
-  "5MI"
-  "5Mi"
-  "5mI"
-  "4mO"
-  "4mo"
-  "4MO"
-  "4Mo"
-  and splits the number from the letter. The letter d is unit for day,
-  w for weeks, mi for minutes and mo for months. The number, previously a string 
-  is converted to an integer and gets multiplied according to the unit. The 
-  units remain case insensitive as well.
-  
+  Parse a duration string into total minutes. Supports single
+  or combined units.
+
+  Examples:
+    "7d" -> 10080
+    "1h30mi" -> 90
+    "2w3d" -> 24480
+    "1d12h" -> 2160
+
+  Supported units: mi (minutes), h (hours), d (days), w (weeks), mo (months).
+  Case insensitive.
+
   Parameter: duration, a string in the format specified above.
-  Return: total number of minutes as an integer, an int
+  Return: total number of minutes as an integer.
   """
-  og = duration
+  original = duration
   duration = duration.lower()
-  unit = duration[-1:]
-  
-  if unit == 'o' or unit == 'i':
-    unit = duration[-2:]
-    try:
-      num = int(duration[:-2])
-    except ValueError:
-      raise ValueError(f"'{og}' is not a valid duration. Example: 7d, 2w, 6mo")
+
+  pairs = re.findall(r'(\d+)(mo|mi|[dhw])', duration)
+
+  if not pairs:
+    raise ValueError(
+      f"'{original}' is not a valid duration. "
+      f"Example: 7d, 2w, 6mo, 1h30mi"
+    )
+
+  rebuilt = ''.join(num + unit for num, unit in pairs)
+  if rebuilt != duration:
+    raise ValueError(
+      f"'{original}' is not a valid duration. "
+      f"Example: 7d, 2w, 6mo, 1h30mi"
+    )
+
+  total = 0
+  for num, unit in pairs:
+    num = int(num)
     if num < 0:
       raise ValueError("Duration must be a positive number.")
-  else:
-    try:
-      num = int(duration[:-1])
-    except ValueError:
-      raise ValueError(f"'{og}' is not a valid duration. Example: 7d, 2w, 6mo")
-    if num < 0:
-      raise ValueError("Duration must be a positive number.")
+    total += num * MULTIPLIERS[unit]
 
-  if unit == 'mi':
-    minutes = num * 1
-    return minutes
-  
-  elif unit == 'h':
-    hours = num * 60
-    return hours
-  
-  elif unit == 'w':
-    weeks = num * 10080
-    return weeks
-
-  elif unit == 'd':
-    days = num * 1440
-    return days
-  
-  elif unit == 'mo':
-    months = num * 43200
-    return months
-  
-  else:
-    raise ValueError(f"Unknown unit '{unit}'. Use mi (minutes), h (hours), d (days), w (weeks), mo (months).")
+  return total
