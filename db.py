@@ -37,6 +37,7 @@ db.execute("""
 db.execute("""
   CREATE TABLE IF NOT EXISTS skips (
     class_name TEXT,
+    user_id INTEGER,
     skipped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 """)
