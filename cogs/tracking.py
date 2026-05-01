@@ -4,39 +4,40 @@ from helpers import parse_duration
 from datetime import datetime, timedelta
 
 class Tracking(commands.Cog):
-  
+
   def __init__(self, bot):
     self.bot = bot
+    self.last_reminded = {}
     self.check_reminders.start()
-    
+
   @commands.command()
   async def track(self, context, name=None, duration=None, hour=None):
     """
     Create a new task to track with a reminder duration and optional hour to ping.
-    
+
     Args:
       context: Discord message context, passed automatically.
       name: Name of the task to track (e.g. "vacuum").
       duration: How often to remind, as a string (e.g. "7d", "2w", "6mo").
       hour: Optional hour (0-23) to send reminders. None means any time.
-    
+
     Returns:
       None. Sends a confirmation message to the Discord channel.
     """
-    
+
     if not name or not duration:
       await context.reply(
         "Usage: `!track <name> <duration> [hour]`\n"
         "Example: `!track vacuum 5d` or `!track vacuum 5d 14` (24 hr format)"
       )
       return
-    
+
     try:
       minutes = parse_duration(duration)
     except ValueError as e:
       await context.reply(str(e))
       return
-    
+
     if hour is not None:
       try:
         hour = int(hour)
@@ -46,7 +47,7 @@ class Tracking(commands.Cog):
       if not (0 <= hour <= 23):
         await context.reply("Hour must be 0-23.")
         return
-    
+
     db.execute(
       "INSERT OR REPLACE INTO tasks VALUES (?, ?, ?, ?, ?)",
       (name, minutes, context.channel.id, hour, context.author.id)
@@ -56,25 +57,25 @@ class Tracking(commands.Cog):
       (name, context.author.id, datetime.now().isoformat())
     )
     db.commit()
-    
+
     if hour is not None:
       hour_string = f" at {str(hour)}:00"
     else:
       hour_string = ""
-      
+
     await context.reply(f"Tracking {name} -- ping me after {duration}{hour_string}")
-  
+
   @commands.command()
   async def edit(self, context, name=None, duration=None, hour=None):
     """
     Edit an existing task's duration and/or reminder hour.
-    
+
     Args:
       context: Discord message context, passed automatically.
       name: Name of the task to edit.
       duration: New duration string, or "-" to keep the existing one.
       hour: New reminder hour (0-23), or None to keep the existing one.
-      
+
     Returns:
       None. Sends a confirmation or error message to the Discord channel.
     """
@@ -88,89 +89,89 @@ class Tracking(commands.Cog):
         "`!edit vacuum 14d 10` --> change both"
       )
       return
-    
+
     #fetch row in db. ? is placeholder for name
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
-    
+
     if not row:
       await context.reply(f"{name} doesn't exist.")
       return
-    
+
     if duration == "-":
       minutes = row[1] # keep existing duration
     else:
       try:
         minutes = parse_duration(duration)
-        
+
       except ValueError as e:
         await context.reply(str(e))
-        
+
         return
-    
+
     if hour is not None: #user put in hr
       try:
         hour = int(hour)
       except ValueError:
         await context.reply("Hour should be a number between 0-23")
         return
-      
+
       if not (0 <= hour <= 23):
         await context.reply("Hour must be 0-23")
         return
     else:
       hour = row[3] #keep existing hr
-    
+
     db.execute(
       "UPDATE tasks SET remind_after_minutes = ?, remind_hour = ? WHERE name = ? AND user_id = ?",
       (minutes, hour, name, context.author.id)
     )
     db.commit()
-    
+
     if hour is not None:
       hour_string = f" at {hour}:00"
     else:
       hour_string = ""
-    await context.reply(f"Updated {name} --> now {duration}{hour_string}")         
-  
+    await context.reply(f"Updated {name} --> now {duration}{hour_string}")
+
   @commands.command()
   async def untrack(self, context, name=None):
     """
     Remove a task and all its log entries from the database.
-    
+
     Args:
       context: Discord message context, passed automatically.
       name: Name of the task to remove.
-    
+
     Returns:
       None. Sends a confirmation or error message to the Discord channel.
     """
-    
+
     if not name:
       await context.reply("Usage: `!untrack <name>`")
       return
-    
+
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     if not row:
       await context.reply(f"{name} doesn't exist.")
       return
-    
+
     db.execute("DELETE FROM logs WHERE task_name = ? AND user_id = ?", (name, context.author.id))
     db.execute("DELETE FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id))
     db.commit()
     await context.reply(f"Removed {name} and all its entries.")
-  
+
   @commands.command()
   async def status(self, context):
     """
     Show all tracked tasks and whether they're overdue.
-    
+
     Args:
       context: Discord message context, passed automatically.
-      
+
     Returns:
       None. Sends a list of tracked tasks with overdue status to the Discord channel.
     """
-    
+
     rows = db.execute("""
       SELECT t.name, t.remind_after_minutes, MAX(l.logged_at) as last_done
       FROM tasks t
@@ -189,11 +190,11 @@ class Tracking(commands.Cog):
         ago = datetime.now() - datetime.fromisoformat(last_done)
         ago_minutes = ago.total_seconds() / 60
         if ago_minutes >= minutes:
-            lines.append(f"**{name}** -- OVERDUE (last done {int(ago_minutes / 1440)}d ago)")
+          lines.append(f"**{name}** -- OVERDUE (last done {int(ago_minutes / 1440)}d ago)")
         else:
           lines.append(f"**{name}** -- done {int(ago_minutes / 1440)}d ago")
       else:
-          lines.append(f"**{name}** -- never done, OVERDUE")
+        lines.append(f"**{name}** -- never done, OVERDUE")
     if not lines:
       await context.reply("No tracked tasks. Use `!list` to see log-only tasks.")
       return
@@ -203,21 +204,21 @@ class Tracking(commands.Cog):
   async def list_tasks(self, context):
     """
     Show all tasks, both tracked and log-only.
-    
+
     Args:
       context: Discord message context, passed automatically.
-      
+
     Returns:
       None. Sends a list of all tasks to the Discord channel.
     """
-    
+
     rows = db.execute(
       "SELECT name, remind_after_minutes, remind_hour FROM tasks WHERE user_id = ?", (context.author.id,)).fetchall()
-    
+
     if not rows:
       await context.reply("Nothing tracked or logged yet.")
       return
-    
+
     lines = []
     for name, minutes, hour in rows:
       if minutes is not None:
@@ -229,7 +230,7 @@ class Tracking(commands.Cog):
         lines.append(f"[log] {name} -- log only")
 
     await context.reply("\n".join(lines))
-  
+
   @commands.command()
   async def snooze(self, context, name=None, duration=None):
     """
@@ -239,18 +240,18 @@ class Tracking(commands.Cog):
       context: Discord message context, passed automatically.
       name: Name of task to snooze
       duration (3h, 8d, 2w, 1mo): how long to snooze
-    
+
     Returns: None. Sends confirmation message to the Discord channel instead.
     """
     if not name:
       await context.reply("Usage: `!snooze <name> [duration]`\nExample: `!snooze vacuum 8h`")
       return
-    
+
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
     if not row:
       await context.reply(f"{name} doesn't exist.")
       return
-    
+
     if duration:
       try:
         snooze_min = parse_duration(duration)
@@ -259,7 +260,7 @@ class Tracking(commands.Cog):
         return
     else:
       snooze_min = 480 #8 hours
-    
+
     snooze_until = datetime.now() + timedelta(minutes=snooze_min)
     db.execute(
       "INSERT INTO logs (task_name, user_id, logged_at) VALUES (?, ?, ?)",
@@ -268,15 +269,16 @@ class Tracking(commands.Cog):
     db.commit()
     await context.reply(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
 
-  @tasks.loop(hours=2)
+  @tasks.loop(hours=1)
   async def check_reminders(self):
     """
     Background loop that checks for overdue tasks and sends reminders.
-    Respects remind_hour if set.
-    
+    Runs every hour. Respects remind_hour if set.
+    Won't send the same reminder more than once per hour.
+
     Args:
       None.
-      
+
     Returns:
       None. Sends reminder messages to the appropriate Discord channels.
     """
@@ -298,20 +300,23 @@ class Tracking(commands.Cog):
           continue
       channel = self.bot.get_channel(channel_id)
       if channel:
+        key = (name, user_id)
+        last = self.last_reminded.get(key)
+        if last and (now - last).total_seconds() < 3600:
+          continue
+        self.last_reminded[key] = now
         await channel.send(f"Hello <@{user_id}>! it's **{name}** time :)")
-  
+
   @check_reminders.before_loop
   async def before_check_reminders(self):
     """
     Wait for the bot to be fully connected before starting the reminder loop.
-    
     Args:
       None.
-      
     Returns:
       None.
     """
     await self.bot.wait_until_ready()
-  
+
 async def setup(bot):
   await bot.add_cog(Tracking(bot))
