@@ -44,7 +44,8 @@ db.execute("""
 
 db.execute("""
   CREATE TABLE IF NOT EXISTS roasts (
-    message TEXT
+    message TEXT,
+    guild_id INTEGER
   )
 """)
 

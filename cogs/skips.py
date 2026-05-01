@@ -10,6 +10,17 @@ LECTURE_MESSAGES = [
   "You say to yourself now, 'I'll do it tmr,' but it will keep piling up.",
   "Getting closer and closer to academic probation 😊",
   "Hmmm...This isn't something Jared would do tbh",
+  "another F incoming!",
+  "You wanna email the Dean again begging? If yes, keep skipping",
+]
+
+DEFAULT_ROASTS = [
+  "That's {count} skip(s) for {name}. You're building a habit. Careful...",
+  "You stink.",
+  "You said you wouldn't skip {name} again. You lied.",
+  "Nobody's impressed by {count} skip(s) for {name}.",
+  "Your ancestors are shaking their heads at you rn.",
+  "That's {count}. But who's counting? Oh wait, I am.",
 ]
 
 
@@ -17,6 +28,22 @@ class Skips(commands.Cog):
 
   def __init__(self, bot):
     self.bot = bot
+
+  def seed_defaults(self, guild_id):
+    """
+    Seed default roast messages for a server if it has none.
+
+    Args:
+      guild_id: Discord server ID.
+
+    Returns:
+      None.
+    """
+    count = db.execute("SELECT COUNT(*) FROM roasts WHERE guild_id = ?", (guild_id,)).fetchone()[0]
+    if count == 0:
+      for msg in DEFAULT_ROASTS:
+        db.execute("INSERT INTO roasts (message, guild_id) VALUES (?, ?)", (msg, guild_id))
+      db.commit()
 
   @commands.command()
   async def skip(self, context, name=None):
@@ -47,7 +74,8 @@ class Skips(commands.Cog):
       (name, context.author.id)
     ).fetchone()[0]
 
-    custom = db.execute("SELECT message FROM roasts").fetchall()
+    self.seed_defaults(context.guild.id)
+    custom = db.execute("SELECT message FROM roasts WHERE guild_id = ?", (context.guild.id,)).fetchall()
     all_messages = []
     for r in custom:
       all_messages.append(r[0])
@@ -102,7 +130,7 @@ class Skips(commands.Cog):
   @commands.command()
   async def addroast(self, context, *, message=None):
     """
-    Add a custom roast message for skipping.
+    Add a custom roast message for this server.
     Use {count} and {name} as placeholders.
 
     Args:
@@ -120,27 +148,28 @@ class Skips(commands.Cog):
       )
       return
 
-    db.execute("INSERT INTO roasts (message) VALUES (?)", (message,))
+    db.execute("INSERT INTO roasts (message, guild_id) VALUES (?, ?)", (message, context.guild.id))
     db.commit()
     await context.reply("Roast added.")
 
   @commands.command()
   async def listroasts(self, context):
     """
-    Show all custom roast messages with their numbers.
+    Show all roast messages for this server with their numbers.
 
     Args:
       context: Discord message context, passed automatically.
 
     Returns:
-      None. Sends a numbered list of custom roasts.
+      None. Sends a numbered list of roasts.
     """
-    rows = db.execute("SELECT rowid, message FROM roasts").fetchall()
+    self.seed_defaults(context.guild.id)
+    rows = db.execute("SELECT rowid, message FROM roasts WHERE guild_id = ?", (context.guild.id,)).fetchall()
     if not rows:
-      await context.reply("No custom roasts yet. Use `!addroast` to add one.")
+      await context.reply("No roasts yet. Use `!addroast` to add one.")
       return
 
-    lines = ["**Custom roasts:**"]
+    lines = ["**Roasts:**"]
     for i, (rowid, msg) in enumerate(rows, 1):
       lines.append(f"`{i}.` {msg}")
     await context.reply("\n".join(lines))
@@ -148,7 +177,7 @@ class Skips(commands.Cog):
   @commands.command()
   async def editroast(self, context, num=None, *, message=None):
     """
-    Edit a custom roast message by its number.
+    Edit a roast message by its number for this server.
 
     Args:
       context: Discord message context, passed automatically.
@@ -171,7 +200,7 @@ class Skips(commands.Cog):
       await context.reply("Number must be a number.")
       return
 
-    rows = db.execute("SELECT rowid FROM roasts").fetchall()
+    rows = db.execute("SELECT rowid FROM roasts WHERE guild_id = ?", (context.guild.id,)).fetchall()
     if not rows or num < 1 or num > len(rows):
       await context.reply("Invalid number. Use `!listroasts` to check.")
       return
@@ -184,7 +213,7 @@ class Skips(commands.Cog):
   @commands.command()
   async def deleteroast(self, context, num=None):
     """
-    Delete a custom roast message by its number.
+    Delete a roast message by its number for this server.
 
     Args:
       context: Discord message context, passed automatically.
@@ -206,9 +235,13 @@ class Skips(commands.Cog):
       await context.reply("Number must be a number.")
       return
 
-    rows = db.execute("SELECT rowid FROM roasts").fetchall()
+    rows = db.execute("SELECT rowid FROM roasts WHERE guild_id = ?", (context.guild.id,)).fetchall()
     if not rows or num < 1 or num > len(rows):
       await context.reply("Invalid number. Use `!listroasts` to check.")
+      return
+
+    if len(rows) <= 1:
+      await context.reply("Can't delete the last roast. Edit it instead.")
       return
 
     rowid = rows[num - 1][0]
