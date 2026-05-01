@@ -12,6 +12,14 @@ A personal Discord bot that tracks habits, logs activities, times focus sessions
 
 **Skips** - Log skipped activities and get roasted for it. The bot detects lecture skips (anything with a 3-digit course number) and pulls from a separate pool of academic roasts. Add your own custom roast messages.
 
+## Using the bot
+
+Just want to add EspeonBot to your server? Use this invite link:
+
+[Invite EspeonBot to your server](https://discord.com/oauth2/authorize?client_id=1496774091791798352&permissions=83968&integration_type=0&scope=bot+applications.commands)
+
+That's it. No setup needed.
+
 ## Commands
 
 ### Tracking
@@ -65,7 +73,10 @@ Optional 24-hour format for reminders:
 - 21 = 9 PM
 - 23 = 11 PM
 
-## Setup
+## Hosting
+The bot is hosted on PebbleHost and runs 24/7. If you want to run your own copy instead, follow the self-hosting instructions below.
+
+## Self-hosting
 
 ### 1. Create the bot on Discord
 - Go to https://discord.com/developers/applications
@@ -111,9 +122,6 @@ You should see `Bot running as YourBotName#1234` in the terminal. The bot should
 ```bash
 pytest
 ```
-
-## Hosting (coming soon)
-The bot currently runs locally. I'm planning to deploy to a VPS so it stays online 24/7, more people can use it if they want and don't wanna self-host. I'm still researching my options 🥺.
 
 ## Project Structure
 ```
