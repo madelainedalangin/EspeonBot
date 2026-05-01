@@ -22,3 +22,5 @@ venv/
 *.swp
 
 .DS_Store
+tests/test_commands.py
+tests/test_db.py
