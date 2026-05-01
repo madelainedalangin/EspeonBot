@@ -18,7 +18,7 @@ Just want to add EspeonBot to your server? Use this invite link:
 
 [Invite EspeonBot to your server](https://discord.com/oauth2/authorize?client_id=1496774091791798352&permissions=83968&integration_type=0&scope=bot+applications.commands)
 
-That's it. No setup needed.
+That's it :D
 
 ## Commands
 
