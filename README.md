@@ -22,6 +22,8 @@ That's it :D
 
 ## Commands
 
+- `!help` to list all the commands and how to use the bot.
+
 ### Tracking
 - `!track <name> <duration> [hour]` - start tracking something
 - `!edit <name> <duration> [hour]` - change duration/hour (use `-` to skip a field)
