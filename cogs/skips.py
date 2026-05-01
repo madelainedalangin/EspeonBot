@@ -4,31 +4,12 @@ from discord.ext import commands
 from db import db
 from datetime import datetime
 
-SKIP_MESSAGES = [
-  "That's {count} skip(s) for {name}. You're building a habit. Careful...",
-  "Future you is going to hate present you.",
-  "That's {count} skip(s). You can feel it.",
-  "Cool, another day of skipping {name}.",
-  "You said you wouldn't skip {name} again. You lied.",
-  "Nobody's impressed by {count} skip(s) for {name}.",
-  "Your ancestors are shaking their heads at you rn."
-  "Skipping {name}? Bold move. Let's see how that works out.",
-  "That's {count}. But who's counting? Oh wait, I am.",
-  "{name}? Never heard of her. -- You, apparently.",
-]
-
 LECTURE_MESSAGES = [
-  "Academic comeback? nah 💀",
-  "you have time to play ow but not go to class? are you serious?",
-  "putting yourself in debt just to stay in bed you bet",
   "What's the excuse this time? I'm not having it.",
   "Another day of building bad habits 😊",
-  "You say to yourself now, 'I'll grind it this weekend' but you will not be",
-  "Are you dying? There's still time just get up for duck's sake",
+  "You say to yourself now, 'I'll do it tmr,' but it will keep piling up.",
   "Getting closer and closer to academic probation 😊",
   "Hmmm...This isn't something Jared would do tbh",
-  "Remember: you are not an academic miracle but go find out the hard way ig.",
-  "You wanna email the Dean again to beg to retake a course? glhf"
 ]
 
 
@@ -67,15 +48,14 @@ class Skips(commands.Cog):
     ).fetchone()[0]
 
     custom = db.execute("SELECT message FROM roasts").fetchall()
-    custom_list = []
+    all_messages = []
     for r in custom:
-      custom_list.append(r[0])
+      all_messages.append(r[0])
 
     has_course_number = re.search(r'\d{3}', name)
     if has_course_number:
-      all_messages = list(SKIP_MESSAGES) + list(LECTURE_MESSAGES) + custom_list
-    else:
-      all_messages = list(SKIP_MESSAGES) + custom_list
+      for msg in LECTURE_MESSAGES:
+        all_messages.append(msg)
 
     msg = random.choice(all_messages).format(count=count, name=name)
     await context.reply(msg)

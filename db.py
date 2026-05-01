@@ -48,4 +48,17 @@ db.execute("""
   )
 """)
 
+count = db.execute("SELECT COUNT(*) FROM roasts").fetchone()[0]
+if count == 0:
+  defaults = [
+    "That's {count} skip(s) for {name}. You're building a habit. Careful...",
+    "You stink.",
+    "You said you wouldn't skip {name} again. You lied.",
+    "Nobody's impressed by {count} skip(s) for {name}.",
+    "Your ancestors are shaking their heads at you rn.",
+    "That's {count}. But who's counting? Oh wait, I am.",
+  ]
+  for msg in defaults:
+    db.execute("INSERT INTO roasts (message) VALUES (?)", (msg,))
+
 db.commit()

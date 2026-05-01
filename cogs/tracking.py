@@ -268,7 +268,7 @@ class Tracking(commands.Cog):
     db.commit()
     await context.reply(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
 
-  @tasks.loop(minutes=1)
+  @tasks.loop(hours=2)
   async def check_reminders(self):
     """
     Background loop that checks for overdue tasks and sends reminders.
