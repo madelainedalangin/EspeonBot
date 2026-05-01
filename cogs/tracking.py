@@ -302,7 +302,7 @@ class Tracking(commands.Cog):
       if channel:
         key = (name, user_id)
         last = self.last_reminded.get(key)
-        if last and (now - last).total_seconds() < 3600:
+        if last and (now - last).total_seconds() < 300:
           continue
         self.last_reminded[key] = now
         await channel.send(f"Hello <@{user_id}>! it's **{name}** time :)")
