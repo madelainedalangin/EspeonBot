@@ -1,6 +1,6 @@
 # EspeonBot
 
-A personal Discord bot that tracks habits, logs activities, times focus sessions, roasts you for skipping class, and won't shut up until you get things done.
+A personal Discord bot that tracks habits, logs activities, times focus sessions, roasts you for skipping class, and will continue to ping you until you get tasks done.
 
 ## Features
 
