@@ -81,6 +81,9 @@ Optional 24-hour format for reminders:
 ## 🌐 Hosting
 The bot is hosted on PebbleHost and runs 24/7. If you want to run your own copy instead, follow the self-hosting instructions below.
 
+## 📝 TO-DO
+- add per user encryption so that each user's data gets encrypted with a key derived from their Discord ID. This way, the admin won't be able to read user data in the db.
+
 ## 🏠 Self-hosting
 Self-hosting gives you your own database. Your data stays completely separate from anyone else running the bot.
 
