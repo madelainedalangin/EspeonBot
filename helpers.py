@@ -76,8 +76,8 @@ async def send_chunked(context, text: str, max_len = 1900) -> None:
       split_index = max_len
     await context.reply(text[:split_index])
     text = text[split_index:].lstrip('\n')
-    if text:
-      await context.reply(text)
+  if text:
+    await context.reply(text)
 
 async def check_name(context, name):
   if name and len(name) > MAX_NAME_LENGTH:
