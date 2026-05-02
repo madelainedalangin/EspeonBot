@@ -20,6 +20,9 @@ Just want to add EspeonBot to your server? Use this invite link:
 
 That's it 🥳
 
+## 🔒 Privacy
+EspeonBot stores task names, logs, and timestamps in a database hosted by the bot owner. The bot owner has access to the database. Please, don't track anything you wouldn't want the admin to see 😭. Self-hosting gives you full control over your own data.
+
 ## ⌨️ Commands
 
 - `!help` to list all the commands and how to use the bot.
