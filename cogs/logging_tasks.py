@@ -3,28 +3,28 @@ from db import db
 from datetime import datetime
 
 class Logging(commands.Cog):
-  
+
   def __init__(self, bot):
     self.bot = bot
-    
+
   @commands.command()
   async def log(self, context, name=None):
     """
     Log anything you want to track without any reminders.
-    - Creates a task if it doesnt exist.
+    Creates a task if it doesnt exist.
 
     Args:
-        context: Discord message context, passed automatically
-        name: what user describes that they want logged (e.g. haircut)
-    
+      context: Discord message context, passed automatically
+      name: what user describes that they want logged (e.g. haircut)
+
     Returns:
       None. Sends a confirmation message instead to the discord channel.
     """
-    
+
     if not name:
       await context.reply("Usage: `!log <name>`\nExample: `!log drawing`")
       return
-    
+
     db.execute(
       "INSERT OR IGNORE INTO tasks VALUES (?, NULL, ?, NULL, ?)",
       (name, context.channel.id, context.author.id)
@@ -35,7 +35,7 @@ class Logging(commands.Cog):
     )
     db.commit()
     await context.reply(f"Logged {name}")
-    
+
   @commands.command()
   async def done(self, context, name=None):
     """
@@ -44,14 +44,15 @@ class Logging(commands.Cog):
     Args:
       context: Discord message context, passed automatically.
       name: Name of the task being tracked.
+
     Returns:
       None. Sends a confirmation or error message to the Discord channel.
     """
-    
+
     if not name:
       await context.reply("Usage: `!done <name>`\nExample: `!done drinkwater`")
       return
-    
+
     row = db.execute(
       "SELECT * FROM tasks WHERE name = ? AND user_id = ?",
       (name, context.author.id)
@@ -59,14 +60,14 @@ class Logging(commands.Cog):
     if not row:
       await context.reply(f"{name} doesn't exist. Use `!track {name} <duration>`\nOr if you cannot remember, type `!list` to see your list of tracked entries.")
       return
-    
+
     db.execute(
       "INSERT INTO logs (task_name, user_id, logged_at) VALUES (?, ?, ?)",
       (name, context.author.id, datetime.now().isoformat())
     )
     db.commit()
     await context.reply(f"Logged {name}")
-  
+
   @commands.command()
   async def history(self, context, name=None):
     """
@@ -75,14 +76,12 @@ class Logging(commands.Cog):
     Args:
       context: Discord message context that's passed automatically
       name: Name of the task user wanna see history on
-    
+
     Returns: None, sends a list of entries to the Discord channel
     """
-    
     if not name:
       await context.reply("Usage: `!history <name>`\nExample: `!history shower`")
       return
-    
     rows = db.execute(
       "SELECT rowid, logged_at FROM logs WHERE task_name = ? AND user_id = ? ORDER BY logged_at DESC",
       (name, context.author.id)
@@ -90,13 +89,14 @@ class Logging(commands.Cog):
     if not rows:
       await context.reply(f"No history for {name}.")
       return
-    
+
     lines = [f"{name} -- {len(rows)} entries:"]
     for index, (rowid, ts) in enumerate(rows, 1):
       dt = datetime.fromisoformat(ts)
-      lines.append(f"`{index}.` {dt.strftime('%B %d, %Y at %-I:%M %p')}")
+      unix = int(dt.timestamp())
+      lines.append(f"`{index}.` <t:{unix}:F>")
     await context.reply("\n".join(lines))
-    
+
   @commands.command()
   async def delete(self, context, name=None, entry_num=None):
     """
@@ -134,7 +134,6 @@ class Logging(commands.Cog):
 
     rowid = rows[entry_num - 1][0]
     db.execute("DELETE FROM logs WHERE rowid = ?", (rowid,))
-    
     #if after delete theres no more logs left, remove the task too
     whats_left = db.execute(
       "SELECT COUNT(*) FROM logs WHERE task_name = ? AND user_id = ?", (name, context.author.id)
@@ -144,7 +143,6 @@ class Logging(commands.Cog):
         "DELETE FROM tasks WHERE name = ? AND user_id = ? AND remind_after_minutes IS NULL",
         (name, context.author.id)
       )
-      
     db.commit()
     await context.reply(f"Deleted entry {entry_num} from {name}.")
 

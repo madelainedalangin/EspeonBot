@@ -90,7 +90,6 @@ class Tracking(commands.Cog):
       )
       return
 
-    #fetch row in db. ? is placeholder for name
     row = db.execute("SELECT * FROM tasks WHERE name = ? AND user_id = ?", (name, context.author.id)).fetchone()
 
     if not row:
@@ -98,28 +97,25 @@ class Tracking(commands.Cog):
       return
 
     if duration == "-":
-      minutes = row[1] # keep existing duration
+      minutes = row[1]
     else:
       try:
         minutes = parse_duration(duration)
-
       except ValueError as e:
         await context.reply(str(e))
-
         return
 
-    if hour is not None: #user put in hr
+    if hour is not None:
       try:
         hour = int(hour)
       except ValueError:
         await context.reply("Hour should be a number between 0-23")
         return
-
       if not (0 <= hour <= 23):
         await context.reply("Hour must be 0-23")
         return
     else:
-      hour = row[3] #keep existing hr
+      hour = row[3]
 
     db.execute(
       "UPDATE tasks SET remind_after_minutes = ?, remind_hour = ? WHERE name = ? AND user_id = ?",
@@ -185,7 +181,7 @@ class Tracking(commands.Cog):
     lines = []
     for name, minutes, last_done in rows:
       if minutes is None:
-        continue  # skip log-only tasks
+        continue
       if last_done:
         ago = datetime.now() - datetime.fromisoformat(last_done)
         ago_minutes = ago.total_seconds() / 60
@@ -234,14 +230,13 @@ class Tracking(commands.Cog):
   @commands.command()
   async def snooze(self, context, name=None, duration=None):
     """
-    Delay a task's reminder at a specified duration
-
+    Delay a task's reminder at a specified duration.
     Args:
       context: Discord message context, passed automatically.
-      name: Name of task to snooze
-      duration (3h, 8d, 2w, 1mo): how long to snooze
-
-    Returns: None. Sends confirmation message to the Discord channel instead.
+      name: Name of task to snooze.
+      duration: How long to snooze (e.g. 3h, 8h, 1d). Defaults to 8h.
+    Returns:
+      None. Sends confirmation message to the Discord channel.
     """
     if not name:
       await context.reply("Usage: `!snooze <name> [duration]`\nExample: `!snooze vacuum 8h`")
@@ -259,22 +254,23 @@ class Tracking(commands.Cog):
         await context.reply(str(e))
         return
     else:
-      snooze_min = 480 #8 hours
+      snooze_min = 480
 
     snooze_until = datetime.now() + timedelta(minutes=snooze_min)
+    unix = int(snooze_until.timestamp())
     db.execute(
       "INSERT INTO logs (task_name, user_id, logged_at) VALUES (?, ?, ?)",
       (name, context.author.id, snooze_until.isoformat())
     )
     db.commit()
-    await context.reply(f"Snoozed {name}. Won't ping you until {snooze_until.strftime('%I:%M %p')}")
+    await context.reply(f"Snoozed {name}. Won't ping you until <t:{unix}:F>")
 
   @tasks.loop(minutes=1)
   async def check_reminders(self):
     """
     Background loop that checks for overdue tasks and sends reminders.
     Runs every minute. Respects remind_hour if set.
-    Won't send the same reminder more than once per minute.
+    Won't send the same reminder more than once per 5 minutes.
 
     Args:
       None.

@@ -112,7 +112,8 @@ class Skips(commands.Cog):
       lines = [f"{name} -- {len(rows)} skip(s):"]
       for i, (ts,) in enumerate(rows, 1):
         dt = datetime.fromisoformat(ts)
-        lines.append(f"`{i}.` {dt.strftime('%B %d, %Y at %-I:%M %p')}")
+        unix = int(dt.timestamp())
+        lines.append(f"`{i}.` <t:{unix}:F>")
       await context.reply("\n".join(lines))
     else:
       rows = db.execute(

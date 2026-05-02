@@ -5,6 +5,7 @@ from datetime import datetime
 
 active_timers = {}
 
+
 class Focus(commands.Cog):
 
   def __init__(self, bot):
@@ -125,11 +126,12 @@ class Focus(commands.Cog):
     for stype, label, start, end in rows:
       tag = "[F]" if stype == "focus" else "[B]"
       dt = datetime.fromisoformat(start)
+      unix = int(dt.timestamp())
       if end:
         mins = round((datetime.fromisoformat(end) - datetime.fromisoformat(start)).total_seconds() / 60)
-        lines.append(f"{tag} **{label}** -- {mins} min ({dt.strftime('%B %d at %-I:%M %p')})")
+        lines.append(f"{tag} **{label}** -- {mins} min (<t:{unix}:F>)")
       else:
-        lines.append(f"{tag} **{label}** -- in progress ({dt.strftime('%B %d at %-I:%M %p')})")
+        lines.append(f"{tag} **{label}** -- in progress (<t:{unix}:F>)")
     await context.reply("\n".join(lines))
 
   @commands.command()
