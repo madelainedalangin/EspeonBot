@@ -2,15 +2,15 @@
 
 A personal Discord bot that tracks habits, logs activities, times focus sessions, roasts you for skipping class, and will continue to ping you until you get tasks done.
 
-## Features
+## ✨ Features
 
-**Tracking** - Track recurring tasks with customizable reminders. Set a duration and an optional hour, and the bot will pester you when you're overdue. Snooze reminders when you need a break.
+📋 **Tracking** - Track recurring tasks with customizable reminders. Set a duration and an optional hour, and the bot will pester you when you're overdue. Snooze reminders when you need a break.
 
-**Logging** - Record anything without reminders. Log haircuts, meals, showers, whatever you want to keep a history of. View and manage entries with numbered history.
+✍🏽 **Logging** - Record anything without reminders. Log haircuts, meals, showers, whatever you want to keep a history of. View and manage entries with numbered history.
 
-**Focus** - Timed focus and break sessions with stats. See how much time you've spent focusing vs taking breaks, broken down by task. If someone mentions you while you're focusing, the bot lets them know.
+😤 **Focus** - Timed focus and break sessions with stats. See how much time you've spent focusing vs taking breaks, broken down by task. If someone mentions you while you're focusing, the bot lets them know.
 
-**Skips** - Log skipped activities and get roasted for it. The bot detects lecture skips (anything with a 3-digit course number) and pulls from a separate pool of academic roasts. Add your own custom roast messages.
+👻 **Skips** - Log skipped activities and get roasted for it. The bot detects lecture skips (anything with a 3-digit course number) and pulls from a separate pool of academic roasts. Add your own custom roast messages.
 
 ## Using the bot
 
@@ -24,7 +24,7 @@ That's it :D
 
 - `!help` to list all the commands and how to use the bot.
 
-### Tracking
+### 📋 Tracking
 - `!track <name> <duration> [hour]` - start tracking something
 - `!edit <name> <duration> [hour]` - change duration/hour (use `-` to skip a field)
 - `!untrack <name>` - stop tracking and delete all entries
@@ -33,30 +33,30 @@ That's it :D
 - `!snooze <name> [duration]` - delay reminders (default 8h)
 - `!done <name>` - log a tracked task (resets the countdown)
 
-### Logging
+### ✍🏽 Logging
 - `!log <name>` - log something with no reminders
 - `!history <name>` - see all entries for something
 - `!delete <name> <entry_number>` - delete a specific entry
 
-### Skips
+### 👻 Skips
 - `!skip <name>` - log a skip and get roasted
 - `!skips` - see skip counts for everything
 - `!skips <name>` - see skip dates for one thing
 
-### Roasts
+### 🤡 Roasts
 - `!addroast <message>` - add a custom roast message
 - `!listroasts` - see all custom roasts
 - `!editroast <number> <new message>` - edit a roast
 - `!deleteroast <number>` - delete a roast
 
-### Focus
+### 😤 Focus
 - `!focus <label> [duration]` - start a focus session (default 25mi)
 - `!break [duration]` - take a break (default 5mi)
 - `!stop` - end current session early
 - `!sessions` - see recent focus/break entries
 - `!stats` - see focus vs break totals
 
-### Durations
+### 🐌 Durations
 Supports single or combined units:
 - `5mi` - 5 minutes
 - `3h` - 3 hours
@@ -66,7 +66,7 @@ Supports single or combined units:
 - `1h30mi` - 1 hour 30 minutes
 - `2w3d` - 2 weeks 3 days
 
-### Hour
+### 🕰️ Hour
 Optional 24-hour format for reminders:
 - 0 = 12 AM midnight
 - 9 = 9 AM
@@ -75,10 +75,10 @@ Optional 24-hour format for reminders:
 - 21 = 9 PM
 - 23 = 11 PM
 
-## Hosting
+## 🌐 Hosting
 The bot is hosted on PebbleHost and runs 24/7. If you want to run your own copy instead, follow the self-hosting instructions below.
 
-## Self-hosting
+## 🏠 Self-hosting
 Self-hosting gives you your own database. Your data stays completely separate from anyone else running the bot.
 
 ### 1. Create the bot on Discord
@@ -91,14 +91,14 @@ Self-hosting gives you your own database. Your data stays completely separate fr
   - **Server Members Intent**
 - Click **Save Changes**
 
-### 2. Invite the bot to your server
+### 2. 💌 Invite the bot to your server
 - Go to **OAuth2 -> URL Generator** on the left sidebar
 - Under **Scopes**, check `bot` and `applications.commands`
 - Under **Bot Permissions**, check `Send Messages`, `Read Message History`, and `Embed Links`
 - Copy the generated URL at the bottom
 - Open it in your browser and select which server to add the bot to
 
-### 3. Set up the project
+### 3. 💻 Set up the project
 ```bash
 git clone https://github.com/yourusername/EspeonBot.git
 cd EspeonBot
@@ -108,25 +108,25 @@ venv\Scripts\activate       # Windows
 pip install -r requirements.txt
 ```
 
-### 4. Add your bot token
+### 4. 🗝️ Add your bot token
 Create a `.env` file in the project root:
 ```
 DISCORD_TOKEN=paste_your_token_here
 ```
 No quotes, no spaces around the `=`.
 
-### 5. Run the bot
+### 5. 🚀 Run the bot
 ```bash
 python espeonbot.py
 ```
 You should see `Bot running as YourBotName#1234` in the terminal. The bot should appear online in your server.
 
-## Tests
+## ⛓️ Tests
 ```bash
 pytest
 ```
 
-## Project Structure
+## 📁 Project Structure
 ```
 EspeonBot/
   .env
@@ -150,7 +150,7 @@ EspeonBot/
     test_commands.py
 ```
 
-## Tech Stack
+## ⚙️ Tech Stack
 - Python
 - discord.py
 - SQLite3
