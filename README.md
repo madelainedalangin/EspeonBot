@@ -79,6 +79,7 @@ Optional 24-hour format for reminders:
 The bot is hosted on PebbleHost and runs 24/7. If you want to run your own copy instead, follow the self-hosting instructions below.
 
 ## Self-hosting
+Self-hosting gives you your own database. Your data stays completely separate from anyone else running the bot.
 
 ### 1. Create the bot on Discord
 - Go to https://discord.com/developers/applications
