@@ -47,6 +47,12 @@ async def help(context):
     "**Hour:** 0-23 (24hr format). 9 = 9 AM, 14 = 2 PM, 21 = 9 PM"
     )
 
+@bot.event
+async def cooldown_error_msg(context, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        await context.reply(f" Bruh slow down 🤨. Try again in {round(error.retry_after)}s.")
+    else:
+        raise error
 
 @bot.event
 async def setup_hook():

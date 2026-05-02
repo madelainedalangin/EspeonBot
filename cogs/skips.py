@@ -3,6 +3,7 @@ import random
 from discord.ext import commands
 from db import db
 from datetime import datetime
+from helpers import send_chunked, check_name
 
 LECTURE_MESSAGES = [
   "What's the excuse this time? I'm not having it.",
@@ -46,6 +47,7 @@ class Skips(commands.Cog):
       db.commit()
 
   @commands.command()
+  @commands.cooldown(3, 10, commands.BucketType.user)
   async def skip(self, context, name=None):
     """
     Log a skipped activity and get roasted for it.
@@ -61,6 +63,9 @@ class Skips(commands.Cog):
     """
     if not name:
       await context.reply("Usage: `!skip <name>`\nExample: `!skip cmput261` or `!skip gym`")
+      return
+    
+    if not await check_name(context, name):
       return
 
     db.execute(
@@ -114,7 +119,7 @@ class Skips(commands.Cog):
         dt = datetime.fromisoformat(ts)
         unix = int(dt.timestamp())
         lines.append(f"`{i}.` <t:{unix}:F>")
-      await context.reply("\n".join(lines))
+      await send_chunked(context, "\n".join(lines))
     else:
       rows = db.execute(
         "SELECT class_name, COUNT(*) as c FROM skips WHERE user_id = ? GROUP BY class_name ORDER BY c DESC",
@@ -126,9 +131,10 @@ class Skips(commands.Cog):
       lines = ["**Skip count:**"]
       for name, count in rows:
         lines.append(f"  {name} -- {count}")
-      await context.reply("\n".join(lines))
+      await send_chunked(context, "\n".join(lines))
 
   @commands.command()
+  @commands.cooldown(3, 10, commands.BucketType.user)
   async def addroast(self, context, *, message=None):
     """
     Add a custom roast message for this server.
@@ -173,7 +179,7 @@ class Skips(commands.Cog):
     lines = ["**Roasts:**"]
     for i, (rowid, msg) in enumerate(rows, 1):
       lines.append(f"`{i}.` {msg}")
-    await context.reply("\n".join(lines))
+    await send_chunked(context, "\n".join(lines))
 
   @commands.command()
   async def editroast(self, context, num=None, *, message=None):
