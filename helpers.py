@@ -1,5 +1,6 @@
 import re
 
+MAX_NAME_LENGTH = 30 #good enuff
 MINUTES_PER_MINUTE = 1
 MINUTES_PER_HOUR = 60
 MINUTES_PER_DAY = 1440
@@ -57,3 +58,29 @@ def parse_duration(duration: str) -> int:
     total += num * MULTIPLIERS[unit]
 
   return total
+
+async def send_chunked(context, text: str, max_len = 1900) -> None:
+  """
+  Send a message and splitting to chunks if it exceeds the limit.
+
+  Args:
+      context: full discord message
+      text: full msg to send
+      max_len: Max chars per message. Defaults to 1900.
+      
+  Returns: None
+  """
+  while len(text) > max_len:
+    split_index = text.rfind('\n', 0, max_len)
+    if split_index == -1:
+      split_index = max_len
+    await context.reply(text[:split_index])
+    text = text[split_index:].lstrip('\n')
+    if text:
+      await context.reply(text)
+
+async def check_name(context, name):
+  if name and len(name) > MAX_NAME_LENGTH:
+    await context.reply(f"Name must be {MAX_NAME_LENGTH} characters or less.")
+    return False
+  return True

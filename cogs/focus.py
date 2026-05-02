@@ -2,6 +2,7 @@ import asyncio
 from discord.ext import commands
 from db import db
 from datetime import datetime
+from helpers import send_chunked, check_name
 
 active_timers = {}
 
@@ -12,6 +13,7 @@ class Focus(commands.Cog):
     self.bot = bot
 
   @commands.command()
+  @commands.cooldown(3, 10, commands.BucketType.user)
   async def focus(self, context, label="general", minutes: int = 25):
     """
     Start a focus session with an optional label and duration.
@@ -25,6 +27,9 @@ class Focus(commands.Cog):
       None. Sends a confirmation and later a notification.
     """
     user_id = context.author.id
+    
+    if not await check_name(context, label):
+      return
 
     if user_id in active_timers:
       active_timers[user_id]["task"].cancel()
@@ -47,6 +52,7 @@ class Focus(commands.Cog):
     active_timers[user_id] = {"task": self.bot.loop.create_task(notify())}
 
   @commands.command(name="break")
+  @commands.cooldown(3, 10, commands.BucketType.user)
   async def take_break(self, context, minutes: int = 5):
     """
     Start a break session.
@@ -132,7 +138,7 @@ class Focus(commands.Cog):
         lines.append(f"{tag} **{label}** -- {mins} min (<t:{unix}:F>)")
       else:
         lines.append(f"{tag} **{label}** -- in progress (<t:{unix}:F>)")
-    await context.reply("\n".join(lines))
+    await send_chunked(context, "\n".join(lines))
 
   @commands.command()
   async def stats(self, context):
@@ -181,7 +187,7 @@ class Focus(commands.Cog):
     ]
     for label, mins in sorted(focus_by_label.items(), key=lambda x: -x[1]):
       lines.append(f"  **{label}** -- {round(mins)} min")
-    await context.reply("\n".join(lines))
+    await send_chunked(context, "\n".join(lines))
 
   async def end_session(self, user_id):
     """

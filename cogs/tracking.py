@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
 from db import db
-from helpers import parse_duration
+from helpers import parse_duration, send_chunked, check_name
 from datetime import datetime, timedelta
 
 class Tracking(commands.Cog):
@@ -30,6 +30,9 @@ class Tracking(commands.Cog):
         "Usage: `!track <name> <duration> [hour]`\n"
         "Example: `!track vacuum 5d` or `!track vacuum 5d 14` (24 hr format)"
       )
+      return
+    
+    if not await check_name(context, name):
       return
 
     try:
@@ -194,7 +197,7 @@ class Tracking(commands.Cog):
     if not lines:
       await context.reply("No tracked tasks. Use `!list` to see log-only tasks.")
       return
-    await context.reply("\n".join(lines))
+    await send_chunked(context, "\n".join(lines))
 
   @commands.command(name="list")
   async def list_tasks(self, context):
@@ -225,7 +228,7 @@ class Tracking(commands.Cog):
       else:
         lines.append(f"[log] {name} -- log only")
 
-    await context.reply("\n".join(lines))
+    await send_chunked(context, "\n".join(lines))
 
   @commands.command()
   async def snooze(self, context, name=None, duration=None):

@@ -1,6 +1,7 @@
 from discord.ext import commands, tasks
 from db import db
 from datetime import datetime
+from helpers import send_chunked, check_name
 
 class Logging(commands.Cog):
 
@@ -8,6 +9,7 @@ class Logging(commands.Cog):
     self.bot = bot
 
   @commands.command()
+  @commands.cooldown(3, 10, commands.BucketType.user)
   async def log(self, context, name=None):
     """
     Log anything you want to track without any reminders.
@@ -24,6 +26,9 @@ class Logging(commands.Cog):
     if not name:
       await context.reply("Usage: `!log <name>`\nExample: `!log drawing`")
       return
+    
+    if not await check_name(context, name):
+      return
 
     db.execute(
       "INSERT OR IGNORE INTO tasks VALUES (?, NULL, ?, NULL, ?)",
@@ -37,6 +42,7 @@ class Logging(commands.Cog):
     await context.reply(f"Logged {name}")
 
   @commands.command()
+  @commands.cooldown(3, 10, commands.BucketType.user)
   async def done(self, context, name=None):
     """
     Log a tracked task. This resets the reminder countdown
@@ -95,7 +101,7 @@ class Logging(commands.Cog):
       dt = datetime.fromisoformat(ts)
       unix = int(dt.timestamp())
       lines.append(f"`{index}.` <t:{unix}:F>")
-    await context.reply("\n".join(lines))
+    await send_chunked(context, "\n".join(lines))
 
   @commands.command()
   async def delete(self, context, name=None, entry_num=None):
